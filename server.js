@@ -124,6 +124,26 @@ const SERVICES = [
 ];
 app.get('/api/services', (req,res)=>{ res.json(SERVICES); });
 
+// ===== أرقام واتساب افتراضية (الطلب والدفع عبر واتساب الأدمن) =====
+// price = null يعني: السعر حسب الاستفسار
+const WA_NUMBERS = [
+  { id: 'sa', flag: '🇸🇦', name: 'السعودية', price: 700 },
+  { id: 'ye', flag: '🇾🇪', name: 'اليمن', price: 500 },
+  { id: 'eg', flag: '🇪🇬', name: 'مصر', price: 600 },
+  { id: 'gb', flag: '🇬🇧', name: 'بريطانيا', price: 1200 },
+  { id: 'us', flag: '🇺🇸', name: 'أمريكا', price: 700 },
+  { id: 'iq', flag: '🇮🇶', name: 'العراق', price: 600 },
+  { id: 'ae', flag: '🇦🇪', name: 'الإمارات', price: 1700 },
+  { id: 'tr', flag: '🇹🇷', name: 'تركيا', price: 1200 },
+  { id: 'cr', flag: '🇨🇷', name: 'كوستاريكا', price: 500 },
+  { id: 'jo', flag: '🇯🇴', name: 'الأردن', price: 800 },
+  { id: 'sd', flag: '🇸🇩', name: 'السودان', price: 800 },
+  { id: 'ca', flag: '🇨🇦', name: 'كندا', price: null },
+  { id: 'om', flag: '🇴🇲', name: 'عُمان', price: null },
+  { id: 'ec', flag: '🇪🇨', name: 'الإكوادور', price: null },
+];
+app.get('/api/numbers', (req,res)=>{ res.json({ currency: 'ريال', contact: ADMIN_WHATSAPP, countries: WA_NUMBERS }); });
+
 // ===== إنشاء طلب + خصم + واتساب =====
 app.post('/api/order', auth, async (req,res)=>{
   try{
