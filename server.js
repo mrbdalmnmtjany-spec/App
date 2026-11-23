@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const JWT_SECRET = process.env.JWT_SECRET || 'royal_secret_12345';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '';
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || '').split(',').map(e => e.trim());
 const ADMIN_WHATSAPP = process.env.ADMIN_WHATSAPP || '967734591441';
 
 mongoose.connect(process.env.MONGO_URI)
@@ -50,10 +50,10 @@ function auth(req, res, next){
   try{ req.user = jwt.verify(token, JWT_SECRET); next(); }
   catch(e){ return res.status(401).json({message:'توكن غير صالح'}); }
 }
-function isAdmin(req,res,next){
+function isAdmin(req, res, next) {
   const userEmail = req.user.email || req.user.username;
-  if(userEmail === ADMIN_EMAIL) return next();
-  return res.status(403).json({message:'ليس أدمن'});
+  if (ADMIN_EMAIL.includes(userEmail)) return next();
+  return res.status(403).json({ message: 'ليس أدمن' });
 }
 
 // ===== الصفحات =====
