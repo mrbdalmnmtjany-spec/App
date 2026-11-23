@@ -35,5 +35,6 @@ function hideLogout(){ document.getElementById("logoutModal").style.display="non
 function doLogout(){ hideLogout(); localStorage.removeItem('token'); currentUser=null; document.getElementById('adminBtnWrap').innerHTML=''; document.getElementById("loginScreen").classList.remove("login-hide"); showPage('home'); location.reload(); }
 (async()=>{ const me=await loadMe(); if(me){ document.getElementById("loginScreen").classList.add("login-hide"); loadServices(); loadOrders(); } else loadServices(); })();
 </script>
+  <script src="https://my-bot-hstn.onrender.com/widget.js"></script>
 </body>
 </html>
