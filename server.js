@@ -12,7 +12,10 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const JWT_SECRET = process.env.JWT_SECRET || 'royal_secret_12345';
-const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || '').split(',').map(e => e.trim());
+// يقبل أكثر من أدمن: ضع الإيميلات في متغير ADMIN_EMAIL واحد مفصولة بفاصلة
+// مثال: ADMIN_EMAIL=admin1@gmail.com,admin2@gmail.com
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || '').split(/[,;\s]+/).map(e => e.trim().toLowerCase()).filter(Boolean);
+const isAdminEmail = (e) => !!e && ADMIN_EMAIL.includes(String(e).trim().toLowerCase());
 const ADMIN_WHATSAPP = process.env.ADMIN_WHATSAPP || '967734591441';
 
 mongoose.connect(process.env.MONGO_URI)
@@ -52,7 +55,7 @@ function auth(req, res, next){
 }
 function isAdmin(req, res, next) {
   const userEmail = req.user.email || req.user.username;
-  if (ADMIN_EMAIL.includes(userEmail)) return next();
+  if (isAdminEmail(userEmail)) return next();
   return res.status(403).json({ message: 'ليس أدمن' });
 }
 
@@ -91,7 +94,7 @@ app.post('/api/login', async (req, res) => {
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return res.status(400).json({ message: 'كلمة السر خطأ' });
     const token = jwt.sign({ id: user._id, email: user.email || user.username, username: user.email || user.username }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { name: user.name, email: user.email || user.username, balance: user.balance, memberId: user.memberId, isAdmin: (user.email || user.username) === ADMIN_EMAIL }, message: 'تم الدخول بنجاح ✅' });
+    res.json({ token, user: { name: user.name, email: user.email || user.username, balance: user.balance, memberId: user.memberId, isAdmin: isAdminEmail(user.email || user.username) }, message: 'تم الدخول بنجاح ✅' });
   } catch (e) { res.status(500).json({ message: 'خطأ في السيرفر' }); }
 });
 
@@ -101,7 +104,7 @@ app.get('/api/me', auth, async (req,res)=>{
     const user = await User.findById(req.user.id);
     if(!user) return res.status(404).json({message:'المستخدم غير موجود'});
     const email = user.email || user.username;
-    res.json({ name: user.name, email, balance: user.balance || 0, memberId: user.memberId || 'RM-000001', isAdmin: email === ADMIN_EMAIL });
+    res.json({ name: user.name, email, balance: user.balance || 0, memberId: user.memberId || 'RM-000001', isAdmin: isAdminEmail(email) });
   }catch(e){ res.status(401).json({message:'التوكن غير صالح'}); }
 });
 
@@ -115,6 +118,9 @@ const SERVICES = [
   { id: 'yt_subs', name: 'مشتركين يوتيوب ▶️', category: 'YouTube', price: 3.5, min: 100, max: 10000, desc: 'مشتركين حقيقيين' },
   { id: 'tg_members', name: 'أعضاء تليجرام ✈️', category: 'Telegram', price: 1.2, min: 100, max: 50000, desc: 'أعضاء قناة / قروب' },
   { id: 'fb_follow', name: 'متابعين فيسبوك 👍', category: 'Facebook', price: 1.8, min: 100, max: 50000, desc: 'متابعين صفحة فيسبوك' },
+  { id: 'wa_channel_follow', name: 'متابعين قنوات واتساب 💬', category: 'WhatsApp', price: 3.0, min: 100, max: 50000, desc: 'متابعين لقناة واتساب - تسليم تدريجي', linkHint: 'رابط قناة واتساب (https://whatsapp.com/channel/...)' },
+  { id: 'poll_votes', name: 'تصويتات 🗳️', category: 'Polls', price: 2.5, min: 50, max: 20000, desc: 'أصوات لتصويت / بول على أي منصة', linkHint: 'رابط التصويت + اكتب الخيار المطلوب بعد الرابط' },
+  { id: 'survey_responses', name: 'استطلاع رأي 📝', category: 'Survey', price: 4.0, min: 50, max: 10000, desc: 'إجابات على استطلاع رأي / نموذج', linkHint: 'رابط الاستطلاع / النموذج + الإجابات المطلوبة' },
 ];
 app.get('/api/services', (req,res)=>{ res.json(SERVICES); });
 
